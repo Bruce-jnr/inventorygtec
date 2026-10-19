@@ -1,0 +1,31 @@
+{
+  "name": "student-inventory-backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:init": "node scripts/init-db.js",
+    "admin:create": "node scripts/create-admin.js",
+    "uploads:audit": "node scripts/audit-uploads.js",
+    "test": "node --test --test-concurrency=1",
+    "test:browser": "node scripts/browser-check.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "multer": "^2.4.0",
+    "mysql2": "^3.24.6",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "supertest": "^7.3.1"
+  }
+}

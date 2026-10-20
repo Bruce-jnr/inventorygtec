@@ -1,5 +1,5 @@
--- Run with `npm run db:init` from the project root.
--- The setup script selects DB_NAME from backend/.env.
+﻿-- Run with `npm run db:init` from the project root.
+-- The setup script selects DB_NAME from .env.
 CREATE TABLE IF NOT EXISTS candidates (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   reference VARCHAR(40) NOT NULL UNIQUE,
@@ -35,3 +35,4 @@ CREATE TABLE IF NOT EXISTS sessions (
   data MEDIUMTEXT NOT NULL,
   INDEX idx_session_expiry (expires_at)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+

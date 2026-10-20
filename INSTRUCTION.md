@@ -48,8 +48,9 @@ candidate-system/
 │   │   └── upload.js
 │   ├── uploads/              # private, not publicly served
 │   ├── db.js
-│   ├── server.js
-│   └── .env.example
+│   └── server.js
+├── app.js                   # cPanel startup file
+├── .env.example             # copy to private root .env
 ├── database/schema.sql
 ├── .gitignore
 └── INSTRUCTION.md
@@ -119,7 +120,7 @@ Import this schema with a MySQL client. Create the initial administrator with a 
 
 ## 7. Backend configuration
 
-Create `backend/.env` from the following example:
+Create `.env` at the project root from the following example. All backend scripts load this root file; relative upload paths remain relative to `backend/`:
 
 ```env
 PORT=5000

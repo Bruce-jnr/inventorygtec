@@ -31,7 +31,7 @@ Requires Node.js 22+, npm and MySQL 8. From the project root:
 npm run setup
 ```
 
-Create `backend/.env` using `backend/.env.example` if it does not already exist. Set your MySQL credentials, `DB_NAME`, and a random `SESSION_SECRET` of at least 32 characters. An existing `JWT_SECRET` can also sign the server sessions. Keep all credentials in the backend.
+Create `.env` using `.env.example` if it does not already exist. Set your MySQL credentials, `DB_NAME`, and a random `SESSION_SECRET` of at least 32 characters. An existing `JWT_SECRET` can also sign the server sessions. Keep credentials in the private root .env file.
 
 ```sh
 npm run db:init
@@ -69,5 +69,8 @@ Browser checks require installed Chrome and Microsoft Edge. They use isolated My
 
 ## Deployment and data handling
 
+For cPanel, choose root **app.js** as the startup file and keep configuration in the root **.env**. `npm start` launches the server; with `NODE_ENV=production`, it serves both the built React app and API. See [docs/CPANEL.md](./docs/CPANEL.md) for installation and hosting settings.
+
 See [docs/OPERATIONS.md](./docs/OPERATIONS.md) before deploying. It covers HTTPS, reverse proxies, database permissions, private storage, orphan audits, retention decisions and consistent encrypted backups. Local setup does not deploy the application or schedule production backups.
+
 

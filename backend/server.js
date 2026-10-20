@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises';
+﻿import { mkdir } from 'node:fs/promises';
 import { config } from './config.js';
 import { pool } from './db.js';
 import { createApp } from './app.js';
@@ -20,9 +20,10 @@ try {
     });
 } catch (error) {
   console.error(
-    'Could not start API. Check backend/.env and run npm run db:init. Error:',
+    'Could not start API. Check .env and run npm run db:init. Error:',
     error.code || error.name,
   );
   await pool.end();
   process.exitCode = 1;
 }
+

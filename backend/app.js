@@ -1,4 +1,5 @@
-import express from 'express';
+﻿import express from 'express';
+import { attachFrontend } from './middleware/frontend.js';
 import helmet from 'helmet';
 import cors from 'cors';
 import session from 'express-session';
@@ -16,7 +17,17 @@ export function createApp({ pool, config, store }) {
   const app = express();
   app.disable('x-powered-by');
   if (config.production) app.set('trust proxy', 1);
-  app.use(helmet({ crossOriginResourcePolicy: { policy: 'same-site' } }));
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'same-site' },
+    contentSecurityPolicy: {
+      directives: {
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        connectSrc: ["'self'"],
+      },
+    },
+  }));
   app.use(cors({ origin: config.origin, credentials: true }));
   app.use(express.json({ limit: '16kb' }));
   app.use('/api', (req, res, next) => {
@@ -70,6 +81,8 @@ export function createApp({ pool, config, store }) {
   app.use('/api/candidates', candidateRoutes(pool, config));
   app.use('/api/student', studentRoutes(pool, config));
   app.use('/api/admin', adminRoutes(pool, config));
+  app.use('/api', (req, res) => res.status(404).json({ message: 'Endpoint not found.' }));
+  if (config.serveFrontend) attachFrontend(app, config.frontendDir);
   app.use((req, res) =>
     res.status(404).json({ message: 'Endpoint not found.' }),
   );
@@ -101,3 +114,4 @@ export function createApp({ pool, config, store }) {
   });
   return app;
 }
+

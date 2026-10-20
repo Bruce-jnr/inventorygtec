@@ -1,8 +1,8 @@
-# Operations
+﻿# Operations
 
 ## Hosting
 
-Use HTTPS with a Node.js process/service, MySQL 8, and persistent private file storage. Build the frontend with `npm run build`; serve `frontend/dist` with an SPA fallback to `index.html`. Proxy `/api` to the Express service before the SPA fallback. Do not expose `backend/`, `.env`, or the uploads directory through the public web server.
+Use HTTPS with a Node.js process/service, MySQL 8, and persistent private file storage. Build the frontend with `npm run build`. Root `app.js` starts Express, which serves `frontend/dist` and SPA route fallbacks when `NODE_ENV=production`, alongside `/api`. A separate static web server can also serve the build if it proxies `/api` first. Do not expose `backend/`, root `.env`, or the uploads directory through the public web server. See CPANEL.md for hosting setup.
 
 Set `NODE_ENV=production`, `FRONTEND_ORIGIN` to the exact public origin, and a strong `SESSION_SECRET` (at least 32 random characters). The existing `JWT_SECRET` is supported as a fallback for signing sessions; the app does not use JWTs or browser token storage. Use a dedicated database user. Database creation requires setup privileges; runtime access only needs SELECT/INSERT/UPDATE/DELETE on application tables. Configure the database server timezone to UTC.
 
@@ -37,3 +37,4 @@ Scheduling, storage credentials, retention approval and off-host backups are dep
 Create each administrator with `npm run admin:create` at the project root. Passwords are hashed with bcrypt at cost 12. The prompt hides password input and refuses passwords outside 12–72 UTF-8 bytes. Automated provisioning may pass `ADMIN_USERNAME` and `ADMIN_PASSWORD` through process environment variables; do not put passwords into shell arguments or committed files. No default accounts or credentials are provided.
 
 To revoke an account immediately, remove it through an authorized database operation and invalidate its stored sessions. Do not hand-edit a plaintext password into the admins table.
+

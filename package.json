@@ -6,7 +6,6 @@
   "engines": { "node": ">=22.12.0" },
   "scripts": {
     "start": "node app.js",
-    "postinstall": "npm --prefix backend install",
     "setup": "npm --prefix frontend install && npm --prefix backend install",
     "dev:api": "npm --prefix backend run dev",
     "start:api": "npm --prefix backend start",

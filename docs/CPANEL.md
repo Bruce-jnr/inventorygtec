@@ -19,7 +19,7 @@ Upload the root app.js and package.json, backend source/package files/lockfile, 
 - Application URL: the root of your domain or subdomain, for example https://students.example.com. Frontend routes and API URLs assume root deployment.
 - Application startup file: **app.js**.
 
-Use cPanel's **Run NPM Install** in the application root. The root postinstall script installs the backend dependencies automatically. The frontend build is already uploaded, so frontend development dependencies are unnecessary on the server. If a host disables lifecycle scripts, activate its displayed Node.js environment in Terminal and run `npm --prefix backend install` explicitly.
+The root package has no automatic install hook: cPanel may run it from the Node virtual environment rather than the application directory. Activate the Node.js environment shown in cPanel Terminal, change to the actual application root, and run `npm --prefix "$PWD/backend" install --omit=dev` explicitly. The root **Run NPM Install** button alone does not install backend dependencies. If frontend/dist is already uploaded, frontend development dependencies are unnecessary on the server.
 
 Create a MySQL database and user in cPanel and assign that user the necessary privileges. Edit the root .env using .env.example as a template:
 

@@ -1,6 +1,6 @@
 ﻿# Backend
 
-Express API for Candidate Registry. See [../README.md](../README.md) for full setup and [../docs/OPERATIONS.md](../docs/OPERATIONS.md) for deployment.
+Express API for Student Inventory. See [../README.md](../README.md) for full setup and [../docs/OPERATIONS.md](../docs/OPERATIONS.md) for deployment.
 
 From this folder:
 
@@ -19,3 +19,4 @@ Configuration lives in private `.env`; use `.env.example` as the template. Sessi
 - `npm start`: start without the development watcher.
 
 The API listens on port 5000 by default. `/api/health` checks database connectivity. Private images are streamed exclusively through authenticated `/api/admin/candidates/:id/passport` and `/certificate` routes; uploads are never served as static files.
+

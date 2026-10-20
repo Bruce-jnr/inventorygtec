@@ -8,11 +8,13 @@ Set `NODE_ENV=production`, `FRONTEND_ORIGIN` to the exact public origin, and a s
 
 Production assumes exactly one trusted reverse proxy. Adjust `trust proxy` in `backend/app.js` to match your deployment before using a different proxy topology. Cookies are Secure in production, HttpOnly and SameSite=Lax; mutating requests additionally require a session CSRF token and an allowed Origin. Admin authentication expires after one hour. Run multiple API instances only after replacing the in-memory rate-limit store with a shared store; sessions already use MySQL.
 
-Set the reverse proxy request size limit slightly above twice `MAX_UPLOAD_MB` to allow the two images and multipart overhead. Application defaults are 3 MB per file, 25 million decoded pixels, and 2,400 pixels maximum output dimensions. Images are decoded, stripped of metadata and stored as JPEG. Keep MySQL and uploads on durable storage and monitor disk capacity.
+Set the reverse proxy request size limit slightly above three times `MAX_UPLOAD_MB` to allow the passport, two certificates and multipart overhead. The second certificate is optional. Application defaults are 3 MB per file, 25 million decoded pixels, and 2,400 pixels maximum output dimensions. Images are decoded, stripped of metadata and stored as JPEG. Keep MySQL and uploads on durable storage and monitor disk capacity.
 
 `GET /api/health` checks database connectivity without revealing credentials. Logs contain error codes, not submitted forms, passwords or database connection details. Route API errors to restricted operational logs.
 
 ## File cleanup
+
+Students access their own record through `/retrieve` with their reference and date of birth. Lookup attempts are rate-limited; access expires after 15 minutes and image endpoints require that session. A corrected DOB becomes the DOB required for future lookups. Resubmission retains the reference and registration date. Replaced images are deleted after the database update commits; conflicting edits require a new lookup. Treat references as private access information.
 
 Registration failures remove any files already written. A process crash can still leave an orphan. Run this audit daily from `backend/`:
 

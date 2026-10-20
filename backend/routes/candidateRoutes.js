@@ -20,8 +20,8 @@ export function candidateRoutes(pool, config) {
     const names = await saveImages(req.files, config.uploadDir)
     try {
       const reference = `CAN-${new Date().getUTCFullYear()}-${randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase()}`
-      const [result] = await pool.execute('INSERT INTO candidates (reference, request_key, full_name, admission_year, current_level, date_of_birth, passport_path, certificate_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [reference, requestKey, value.full_name, value.admission_year, value.current_level, value.date_of_birth, ...names])
+      const [result] = await pool.execute('INSERT INTO candidates (reference, request_key, full_name, surname, first_name, middle_name, admission_year, current_level, mode_of_entry, date_of_birth, passport_path, certificate_path, certificate2_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [reference, requestKey, value.full_name, value.surname, value.first_name, value.middle_name || null, value.admission_year, value.current_level, value.mode_of_entry, value.date_of_birth, names[0], names[1], names[2] || null])
       return res.status(201).json({ message: 'Registration successful', candidateId: result.insertId, reference })
     } catch (error) {
       await Promise.all(names.map(filename => unlink(path.join(config.uploadDir, filename)).catch(() => {})))

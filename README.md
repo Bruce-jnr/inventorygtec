@@ -1,15 +1,16 @@
-﻿# Candidate Registry
+﻿# Student Inventory
 
 A React/Vite candidate registration portal with an Express/MySQL administration API. Requirements are in [INSTRUCTION.md](./INSTRUCTION.md).
 
 ## Features
 
-- Public registration with full name, admission year, current level, date of birth, passport and certificate.
+- Public registration with surname, first name, optional middle name, admission year, level 100–400, mode of entry (Regular or Matured), date of birth, passport, a required certificate and an optional second certificate.
+- Students can retrieve their form at `/retrieve` using the reference and date of birth, correct their details, keep or replace images, and resubmit under the same reference. Editing sessions expire after 15 minutes; concurrent stale edits are rejected.
 - JPG/PNG previews, inline validation, configurable 3 MB image limits, and an idempotent submission reference.
 - MySQL persistence, image content validation and normalization, private UUID upload storage, and failed-upload cleanup.
 - Admin login/logout with bcrypt, one-hour MySQL-backed HttpOnly sessions, CSRF protection, and request rate limits.
 - Candidate totals, name search, admission year/level filters, pagination, private documents and record details.
-- A4 printing with the passport photo and an optional separate certificate page.
+- Single-page A4 printing with surname-first names, passport photo and adjustable certificate cropping. Two certificates print side by side with independent crop settings; printed records omit registration references, dates and status badges.
 
 ## Layout
 
@@ -62,10 +63,11 @@ npm run test:browser
 
 API tests use real MySQL with a unique temporary test database and clean it up afterwards. The configured database account needs CREATE/DROP privileges for testing; use a separate development account rather than granting these privileges to the production runtime account. Tests never seed sample records or accounts into the application database.
 
-Browser checks require installed Chrome and Microsoft Edge. They use isolated MySQL fixtures and check registration, previews, login, filters, private images, logout, responsive layouts and one/two-page A4 PDFs in both browsers. Screenshots and PDFs are saved in `artifacts/`.
+Browser checks require installed Chrome and Microsoft Edge. They use isolated MySQL fixtures and check registration, previews, login, filters, private images, logout, responsive layouts, certificate cropping and single-page A4 PDFs in both browsers. Screenshots and PDFs are saved in `artifacts/`.
 
 `npm run build` writes `frontend/dist/`. `npm run preview` previews that build; run the API separately and configure an API origin/proxy when serving the production build.
 
 ## Deployment and data handling
 
 See [docs/OPERATIONS.md](./docs/OPERATIONS.md) before deploying. It covers HTTPS, reverse proxies, database permissions, private storage, orphan audits, retention decisions and consistent encrypted backups. Local setup does not deploy the application or schedule production backups.
+

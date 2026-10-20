@@ -1,4 +1,4 @@
-import { describe, it, before, after } from 'node:test'
+﻿import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { randomUUID, randomBytes } from 'node:crypto'
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
@@ -10,6 +10,7 @@ import request from 'supertest'
 import sharp from 'sharp'
 import { config } from '../config.js'
 import { createApp } from '../app.js'
+import { validateCandidate } from '../validation.js'
 
 describe('Candidate API with isolated MySQL persistence', { concurrency: false }, () => {
   const database = `candidate_test_${randomBytes(8).toString('hex')}`
@@ -42,7 +43,7 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
   })
   function registration(agent = anonymous, key = randomUUID(), token = csrf, values = {}) {
     return agent.post('/api/candidates').set('X-CSRF-Token', token).set('Idempotency-Key', key)
-      .field('full_name', values.full_name ?? 'Ama Mensah').field('admission_year', '2024').field('current_level', '200').field('date_of_birth', '2003-02-17')
+      .field('surname', values.surname ?? 'Mensah').field('first_name', values.first_name ?? 'Ama').field('middle_name', values.middle_name ?? '').field('admission_year', '2024').field('current_level', '200').field('mode_of_entry', 'Regular').field('date_of_birth', '2003-02-17')
   }
   it('reports a healthy database and sets private cache headers', async () => {
     const response = await request(app).get('/api/health').expect(200)
@@ -50,7 +51,7 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     assert.equal(response.headers['cache-control'], 'no-store')
   })
   it('blocks every private endpoint without authentication', async () => {
-    for (const endpoint of ['/api/admin/stats', '/api/admin/candidates', '/api/admin/candidates/1', '/api/admin/candidates/1/passport', '/api/admin/candidates/1/certificate']) await anonymous.get(endpoint).expect(401)
+    for (const endpoint of ['/api/admin/stats', '/api/admin/candidates', '/api/admin/candidates/1', '/api/admin/candidates/1/passport', '/api/admin/candidates/1/certificate', '/api/admin/candidates/1/certificate2']) await anonymous.get(endpoint).expect(401)
     await anonymous.get('/uploads/example.jpg').expect(404)
   })
   it('requires a session CSRF token and checks request origins', async () => {
@@ -58,8 +59,9 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     await anonymous.post('/api/admin/login').set('X-CSRF-Token', csrf).set('Origin', 'https://untrusted.example').send({ username: 'test-admin', password }).expect(403)
   })
   it('returns field validation errors and writes no files for missing data', async () => {
-    const response = await anonymous.post('/api/candidates').set('X-CSRF-Token', csrf).set('Idempotency-Key', randomUUID()).field('full_name', 'A').expect(400)
-    assert.ok(response.body.errors.full_name)
+    const response = await anonymous.post('/api/candidates').set('X-CSRF-Token', csrf).set('Idempotency-Key', randomUUID()).field('surname', '').expect(400)
+    assert.ok(response.body.errors.surname)
+    assert.ok(response.body.errors.first_name)
     assert.ok(response.body.errors.passport)
     assert.deepEqual(await readdir(directory), [])
   })
@@ -74,9 +76,16 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     await registration().attach('passport', Buffer.alloc(config.maxUploadBytes + 1), 'large.png').attach('certificate', png, 'certificate.png').expect(413)
     assert.deepEqual(await readdir(directory), [])
   })
+  it('validates the optional second certificate and leaves no files on failure', async () => {
+    await registration().attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png')
+      .attach('certificate2', Buffer.from('fake image'), 'certificate2.png').expect(415)
+    await registration().attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png')
+      .attach('certificate2', Buffer.alloc(config.maxUploadBytes + 1), 'large.png').expect(413)
+    assert.deepEqual(await readdir(directory), [])
+  })
   it('rejects impossible dates, invalid levels and empty requests', async () => {
     const result = await anonymous.post('/api/candidates').set('X-CSRF-Token', csrf).set('Idempotency-Key', randomUUID())
-      .field('full_name', 'Ama Mensah').field('admission_year', '2024').field('current_level', 'invalid').field('date_of_birth', '2003-02-30')
+      .field('surname', 'Mensah').field('first_name', 'Ama').field('admission_year', '2024').field('current_level', 'invalid').field('date_of_birth', '2003-02-30')
       .attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').expect(400)
     assert.ok(result.body.errors.current_level)
     assert.ok(result.body.errors.date_of_birth)
@@ -84,14 +93,19 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     assert.deepEqual(await readdir(directory), [])
   })
   it('registers both image types, persists data and normalizes private files', async () => {
-    const response = await registration().attach('passport', jpeg, 'passport.jpg').attach('certificate', png, 'certificate.png').expect(201)
+    const response = await registration().attach('passport', jpeg, 'passport.jpg').attach('certificate', png, 'certificate.png').attach('certificate2', jpeg, 'certificate2.jpg').expect(201)
     candidate = response.body
     assert.match(candidate.reference, /^CAN-\d{4}-[A-F0-9]{16}$/)
     const [[row]] = await pool.execute('SELECT * FROM candidates WHERE id = ?', [candidate.candidateId])
-    assert.equal(row.full_name, 'Ama Mensah')
+    assert.equal(row.full_name, 'AMA MENSAH')
+    assert.equal(row.surname, 'MENSAH')
+    assert.equal(row.first_name, 'AMA')
+    assert.equal(row.mode_of_entry, 'Regular')
+    assert.equal(row.middle_name, null)
     assert.equal(row.date_of_birth, '2003-02-17')
     assert.match(row.passport_path, /^[a-f0-9-]{36}\.jpg$/)
-    assert.equal((await readdir(directory)).length, 2)
+    assert.match(row.certificate2_path, /^[a-f0-9-]{36}\.jpg$/)
+    assert.equal((await readdir(directory)).length, 3)
     assert.equal((await sharp(await readFile(path.join(directory, row.certificate_path))).metadata()).format, 'jpeg')
   })
   it('makes retries idempotent without creating duplicate records or files', async () => {
@@ -99,7 +113,7 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     const response = await registration(anonymous, row.request_key).attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').expect(201)
     assert.equal(String(response.body.candidateId), String(candidate.candidateId))
     assert.equal(response.body.reference, candidate.reference)
-    assert.equal((await readdir(directory)).length, 2)
+    assert.equal((await readdir(directory)).length, 3)
   })
   it('cleans up files if database insertion fails', async () => {
     const failingPool = { execute(sql, params) { if (sql.startsWith('INSERT INTO candidates')) return Promise.reject(Object.assign(new Error('test database failure'), { code: 'TEST_FAILURE' })); return pool.execute(sql, params) } }
@@ -107,9 +121,9 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     apps.push(failedApp)
     const agent = request.agent(failedApp)
     const session = await agent.get('/api/session').expect(200)
-    const result = await registration(agent, randomUUID(), session.body.csrfToken).attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').expect(500)
+    const result = await registration(agent, randomUUID(), session.body.csrfToken).attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').attach('certificate2', png, 'certificate2.png').expect(500)
     assert.ok(!JSON.stringify(result.body).includes('TEST_FAILURE'))
-    assert.equal((await readdir(directory)).length, 2)
+    assert.equal((await readdir(directory)).length, 3)
   })
   it('logs in securely, regenerates sessions and rejects invalid credentials', async () => {
     const session = await admin.get('/api/session').expect(200)
@@ -144,9 +158,13 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
   })
   it('returns details and authenticated images with safe headers', async () => {
     const detail = await admin.get(`/api/admin/candidates/${candidate.candidateId}`).expect(200)
-    assert.equal(detail.body.full_name, 'Ama Mensah')
+    assert.equal(detail.body.full_name, 'AMA MENSAH')
+    assert.equal(detail.body.surname, 'MENSAH')
+    assert.equal(detail.body.first_name, 'AMA')
     assert.ok(!('certificate_path' in detail.body))
-    for (const image of ['passport', 'certificate']) {
+    assert.equal(detail.body.has_second_certificate, true)
+    assert.ok(!('certificate2_path' in detail.body))
+    for (const image of ['passport', 'certificate', 'certificate2']) {
       const result = await admin.get(`/api/admin/candidates/${candidate.candidateId}/${image}`).expect(200)
       assert.match(result.headers['content-type'], /image\/jpeg/)
       assert.equal(result.headers['x-content-type-options'], 'nosniff')
@@ -202,4 +220,33 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     assert.match(response.headers['set-cookie'][0], /; Secure/)
     assert.match(response.headers['set-cookie'][0], /; HttpOnly/)
   })
+  it('still accepts registrations with only one certificate', async () => {
+    const result = await registration().attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').expect(201)
+    const [[row]] = await pool.execute('SELECT certificate2_path FROM candidates WHERE id = ?', [result.body.candidateId])
+    assert.equal(row.certificate2_path, null)
+  })
 })
+
+describe('Structured candidate names', () => {
+  const valid = { surname: 'Mensah', first_name: 'Ama', admission_year: '2024', current_level: '200', mode_of_entry: 'Regular', date_of_birth: '2003-02-17' }
+  it('normalizes names and accepts an optional middle name', () => {
+    const result = validateCandidate({ ...valid, surname: ' Mensah ', middle_name: '  Akua   Abena ' })
+    assert.deepEqual(result.errors, {})
+    assert.equal(result.value.middle_name, 'AKUA ABENA')
+    assert.equal(result.value.full_name, 'AMA AKUA ABENA MENSAH')
+    assert.deepEqual(validateCandidate(valid).errors, {})
+  })
+  it('requires first name and surname and rejects invalid or oversized name parts', () => {
+    assert.ok(validateCandidate({ ...valid, surname: ' ' }).errors.surname)
+    assert.ok(validateCandidate({ ...valid, first_name: '' }).errors.first_name)
+    assert.ok(validateCandidate({ ...valid, middle_name: 'a'.repeat(51) }).errors.middle_name)
+    assert.ok(validateCandidate({ ...valid, first_name: '<script>' }).errors.first_name)
+  })
+  it('accepts only Regular/Matured entry modes and levels 100–400', () => {
+    assert.deepEqual(validateCandidate({ ...valid, mode_of_entry: 'Matured', current_level: '400' }).errors, {})
+    for (const mode of ['', 'Other']) assert.ok(validateCandidate({ ...valid, mode_of_entry: mode }).errors.mode_of_entry)
+    for (const level of ['500', '600', 'Postgraduate']) assert.ok(validateCandidate({ ...valid, current_level: level }).errors.current_level)
+  })
+})
+
+

@@ -1,4 +1,4 @@
-import { Router } from 'express'
+﻿import { Router } from 'express'
 import bcrypt from 'bcrypt'
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
@@ -6,7 +6,7 @@ import { rateLimit } from 'express-rate-limit'
 import { requireAdmin } from '../middleware/auth.js'
 import { levels } from '../validation.js'
 
-const publicFields = 'id, reference, full_name, admission_year, current_level, date_of_birth, created_at'
+const publicFields = 'id, reference, full_name, surname, first_name, middle_name, admission_year, current_level, mode_of_entry, date_of_birth, created_at, (certificate2_path IS NOT NULL) AS has_second_certificate'
 const idPattern = /^[1-9]\d{0,19}$/
 
 export function adminRoutes(pool, config) {
@@ -54,17 +54,17 @@ export function adminRoutes(pool, config) {
     const pages = Math.max(1, Math.ceil(total / 10))
     const current = Math.min(Number(page), pages)
     const [rows] = await pool.execute(`SELECT ${publicFields} FROM candidates${where} ORDER BY created_at DESC, id DESC LIMIT 10 OFFSET ${((current - 1) * 10)}`, params)
-    res.json({ candidates: rows, total, page: current, pages, pageSize: 10 })
+    res.json({ candidates: rows.map(row => ({ ...row, has_second_certificate: Number(row.has_second_certificate) === 1 })), total, page: current, pages, pageSize: 10 })
   })
   router.get('/candidates/:id', async (req, res) => {
     if (!idPattern.test(req.params.id)) return res.status(400).json({ message: 'Invalid candidate reference.' })
     const [rows] = await pool.execute(`SELECT ${publicFields} FROM candidates WHERE id = ?`, [req.params.id])
     if (!rows.length) return res.status(404).json({ message: 'Candidate record not found.' })
-    res.json(rows[0])
+    res.json({ ...rows[0], has_second_certificate: Number(rows[0].has_second_certificate) === 1 })
   })
   router.get('/candidates/:id/:image', async (req, res, next) => {
-    if (!idPattern.test(req.params.id) || !['passport', 'certificate'].includes(req.params.image)) return res.status(404).json({ message: 'Image not found.' })
-    const column = req.params.image === 'passport' ? 'passport_path' : 'certificate_path'
+    if (!idPattern.test(req.params.id) || !['passport', 'certificate', 'certificate2'].includes(req.params.image)) return res.status(404).json({ message: 'Image not found.' })
+    const column = { passport: 'passport_path', certificate: 'certificate_path', certificate2: 'certificate2_path' }[req.params.image]
     const [rows] = await pool.execute(`SELECT ${column} AS filename FROM candidates WHERE id = ?`, [req.params.id])
     if (!rows.length) return res.status(404).json({ message: 'Image not found.' })
     const filename = rows[0].filename
@@ -77,3 +77,4 @@ export function adminRoutes(pool, config) {
   })
   return router
 }
+

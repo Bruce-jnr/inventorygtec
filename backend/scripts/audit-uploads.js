@@ -5,8 +5,8 @@ import { config } from '../config.js'
 
 // Safe default: report only. Explicit deletion ignores files younger than 24 hours.
 try {
-  const [rows] = await pool.execute('SELECT passport_path, certificate_path FROM candidates')
-  const referenced = new Set(rows.flatMap(row => [row.passport_path, row.certificate_path]))
+  const [rows] = await pool.execute('SELECT passport_path, certificate_path, certificate2_path FROM candidates')
+  const referenced = new Set(rows.flatMap(row => [row.passport_path, row.certificate_path, row.certificate2_path]).filter(Boolean))
   const files = await readdir(config.uploadDir).catch(error => { if (error.code === 'ENOENT') return []; throw error })
   let orphaned = 0
   let removed = 0

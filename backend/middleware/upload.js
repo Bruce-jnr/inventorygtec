@@ -7,12 +7,12 @@ import path from 'node:path'
 export function uploadMiddleware(maxBytes) {
   return multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: maxBytes, files: 2, fields: 4, fieldSize: 1024, parts: 6 },
+    limits: { fileSize: maxBytes, files: 3, fields: 8, fieldSize: 1024, parts: 11 },
     fileFilter(req, file, callback) {
       if (!['image/jpeg', 'image/png'].includes(file.mimetype)) return callback(Object.assign(new Error('Only JPEG and PNG images are supported.'), { status: 415 }))
       callback(null, true)
     },
-  }).fields([{ name: 'passport', maxCount: 1 }, { name: 'certificate', maxCount: 1 }])
+  }).fields([{ name: 'passport', maxCount: 1 }, { name: 'certificate', maxCount: 1 }, { name: 'certificate2', maxCount: 1 }])
 }
 
 export async function normalizeImage(file) {
@@ -34,9 +34,8 @@ export async function normalizeImage(file) {
 export async function saveImages(files, directory) {
   const paths = []
   try {
-    const passport = await normalizeImage(files.passport[0])
-    const certificate = await normalizeImage(files.certificate[0])
-    for (const buffer of [passport, certificate]) {
+    const buffers = await Promise.all(['passport', 'certificate', 'certificate2'].filter(kind => files?.[kind]?.[0]).map(kind => normalizeImage(files[kind][0])))
+    for (const buffer of buffers) {
       const filename = `${randomUUID()}.jpg`
       const fullPath = path.join(directory, filename)
       await writeFile(fullPath, buffer, { flag: 'wx', mode: 0o600 })

@@ -1,4 +1,4 @@
-﻿# Student Inventory
+# Student Inventory
 
 A React/Vite candidate registration portal with an Express/MySQL administration API. Requirements are in [INSTRUCTION.md](./INSTRUCTION.md).
 
@@ -6,7 +6,7 @@ A React/Vite candidate registration portal with an Express/MySQL administration 
 
 - Public registration with surname, first name, optional middle name, admission year, level 100–400, mode of entry (Regular or Matured), date of birth, passport, a required certificate and an optional second certificate.
 - Students can retrieve their form at `/retrieve` using the reference and date of birth, correct their details, keep or replace images, and resubmit under the same reference. Editing sessions expire after 15 minutes; concurrent stale edits are rejected.
-- JPG/PNG previews, inline validation, configurable 3 MB image limits, and an idempotent submission reference.
+- JPG/PNG previews, inline validation, configurable 15 MB uploads compressed to at most 3 MB per saved image, and an idempotent submission reference.
 - MySQL persistence, image content validation and normalization, private UUID upload storage, and failed-upload cleanup.
 - Admin login/logout with bcrypt, one-hour MySQL-backed HttpOnly sessions, CSRF protection, and request rate limits.
 - Candidate totals, name search, admission year/level filters, pagination, private documents and record details.

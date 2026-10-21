@@ -33,7 +33,7 @@ DB_USER=yourcpaneluser_dbuser
 DB_PASSWORD=your_database_password
 SESSION_SECRET=your_random_secret_of_at_least_32_characters
 UPLOAD_DIR=./uploads
-MAX_UPLOAD_MB=3
+MAX_UPLOAD_MB=15
 ```
 
 Let cPanel supply PORT when it does so. Relative UPLOAD_DIR remains relative to backend/, so ./uploads means backend/uploads and existing stored images remain compatible. Keep that directory private, writable and persistent.

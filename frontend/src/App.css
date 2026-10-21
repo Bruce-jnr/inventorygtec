@@ -28,7 +28,7 @@ legend { display: flex; align-items: center; gap: 16px; width: 100%; padding: 0;
 legend small { display: block; font-size: 13px; font-weight: 400; color: var(--body); margin-top: 4px; }
 .field { min-width: 0; margin-bottom: 24px; }
 .field label, .upload-field > label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
-.required { margin-left: 2px; color: var(--body); }
+.required { margin-left: 2px; color: var(--danger); }
 .field input, .field select { font-size: 16px; }
 .field select:has(option:checked[value=""]) { color: var(--muted); }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }

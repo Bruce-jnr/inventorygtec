@@ -13,7 +13,7 @@ export const config = {
   origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
   secret: process.env.SESSION_SECRET || process.env.JWT_SECRET,
   uploadDir: path.resolve(backendDir, process.env.UPLOAD_DIR || 'uploads'),
-  maxUploadBytes: Number(process.env.MAX_UPLOAD_MB || 3) * 1024 * 1024,
+  maxUploadBytes: Number(process.env.MAX_UPLOAD_MB || 15) * 1024 * 1024,
   db: {
     host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT || 3306),

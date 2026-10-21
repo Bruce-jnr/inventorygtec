@@ -43,7 +43,7 @@ DB_USER=YOUR_CPANEL_PREFIX_dbuser
 DB_PASSWORD="YOUR_DATABASE_USER_PASSWORD"
 SESSION_SECRET=YOUR_LONG_RANDOM_SECRET
 UPLOAD_DIR=./uploads
-MAX_UPLOAD_MB=3
+MAX_UPLOAD_MB=15
 ```
 
 Use your provider's database host if it differs. Omit `PORT` unless your host requires it.

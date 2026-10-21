@@ -4,6 +4,8 @@ import { randomUUID } from 'node:crypto'
 import { writeFile, unlink } from 'node:fs/promises'
 import path from 'node:path'
 
+export const MAX_SAVED_IMAGE_BYTES = 3 * 1024 * 1024
+
 export function uploadMiddleware(maxBytes) {
   return multer({
     storage: multer.memoryStorage(),
@@ -23,12 +25,24 @@ export async function normalizeImage(file) {
     throw Object.assign(new Error('The uploaded file is not a valid JPEG or PNG image.'), { status: 415 })
   }
   try {
-    return await sharp(bytes, { limitInputPixels: 25000000, failOn: 'warning' }).rotate()
-      .resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality: 90 }).toBuffer()
+    const image = sharp(bytes, { limitInputPixels: 25000000, failOn: 'warning' }).rotate()
+    for (const { size, quality } of [
+      { size: 2400, quality: 90 },
+      { size: 2400, quality: 80 },
+      { size: 2400, quality: 70 },
+      { size: 2000, quality: 70 },
+      { size: 1600, quality: 70 },
+    ]) {
+      const buffer = await image.clone()
+        .resize({ width: size, height: size, fit: 'inside', withoutEnlargement: true })
+        .flatten({ background: '#fff' })
+        .jpeg({ quality }).toBuffer()
+      if (buffer.length <= MAX_SAVED_IMAGE_BYTES) return buffer
+    }
   } catch {
     throw Object.assign(new Error('This image could not be read. Choose a valid JPEG or PNG image.'), { status: 415 })
   }
+  throw Object.assign(new Error('This image could not be compressed below 3 MB. Choose a smaller image.'), { status: 413 })
 }
 
 export async function saveImages(files, directory) {

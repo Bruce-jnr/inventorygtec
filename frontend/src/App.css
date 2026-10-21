@@ -174,6 +174,9 @@ dl > div:not(:first-child) dd { font-family: var(--font-mono); font-size: 14px; 
 .print-option input { width: 20px; height: 20px; accent-color: var(--accent-text); }
 .print-view { max-width: 1040px; }
 .sheet-full-name { grid-column: 1 / -1; }
+.print-view .sheet-fields dl { display: flex; flex-wrap: wrap; }
+.print-view .sheet-fields dl > div { flex: 1 1 calc(50% - 16px); min-width: 0; }
+.print-view .sheet-fields dl > .sheet-full-name { flex-basis: 100%; }
 .crop-controls { padding: 24px; margin-bottom: 24px; border: 1px solid var(--hairline); border-radius: var(--radius-card); background: var(--surface-card); }
 .crop-controls p { font-size: 13px; margin-top: 8px; }
 .crop-sliders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 20px 0; }
@@ -188,7 +191,7 @@ dl > div:not(:first-child) dd { font-family: var(--font-mono); font-size: 14px; 
 .certificate-item { min-width: 0; }
 .certificate-item h3 { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
 .certificate-crop { width: 100%; aspect-ratio: 1.36; overflow: hidden; background: var(--surface-soft); }
-.certificate-crop .private-image { display: block; width: 100%; height: 100%; object-fit: var(--certificate-fit, cover); object-position: var(--certificate-x, 50%) var(--certificate-y, 50%); transform: scale(var(--certificate-zoom, 1)); transform-origin: var(--certificate-x, 50%) var(--certificate-y, 50%); }
+.certificate-crop .private-image { display: block; width: 100%; height: 100%; object-fit: var(--certificate-fit, contain); object-position: var(--certificate-x, 50%) var(--certificate-y, 50%); transform: scale(var(--certificate-zoom, 1)); transform-origin: var(--certificate-x, 50%) var(--certificate-y, 50%); }
 @media (max-width: 639px) { .crop-sliders { grid-template-columns: 1fr; gap: 12px; } .sheet-certificate { padding: 24px; } }
 .site-footer { border-top: 1px solid var(--hairline-soft); background: var(--canvas); }
 .site-footer > div { max-width: 1264px; margin: auto; padding: 48px 32px; display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 13px; color: var(--muted); }
@@ -339,6 +342,8 @@ dl > div:not(:first-child) dd { font-family: var(--font-mono); font-size: 14px; 
   .sheet-fields { flex: 1; }
   .sheet-fields h3 { font-size: 11pt; margin-bottom: 4mm; }
   dl { grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .print-view .sheet-fields dl > div { flex-basis: calc(50% - 2mm); }
+  .print-view .sheet-fields dl > .sheet-full-name { flex-basis: 100%; }
   dt { font-size: 9pt; margin-bottom: 2mm; }
   dd, dl > div:not(:first-child) dd { font-size: 10pt; }
   .passport-frame { width: 35mm; }

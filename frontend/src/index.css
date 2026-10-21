@@ -1,32 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Dark theme with Inter typography and the existing blue action color. */
+/* Light theme with Inter typography and the existing blue action color. */
 :root {
   --primary: #0052ff;
   --primary-active: #003ecc;
-  --primary-disabled: #33415c;
-  --accent-text: #85a7ff;
+  --primary-disabled: #849bd0;
+  --accent-text: #0052ff;
   --on-primary: #fff;
-  --ink: #f4f5f7;
-  --body: #b5bbc5;
-  --muted: #969eac;
-  --muted-soft: #717b8b;
-  --hairline: #353a44;
-  --hairline-soft: #262b34;
-  --canvas: #0a0b0d;
-  --surface-card: #16181c;
-  --input-surface: #101216;
-  --surface-soft: #101216;
-  --surface-strong: #252a33;
-  --success: #45d69b;
-  --danger: #ff7b86;
+  --ink: #0a0b0d;
+  --body: #5b616e;
+  --muted: #68707d;
+  --muted-soft: #747c89;
+  --hairline: #dee1e6;
+  --hairline-soft: #eef0f3;
+  --canvas: #fff;
+  --surface-card: #fff;
+  --input-surface: #fff;
+  --surface-soft: #f7f8fa;
+  --surface-strong: #eef0f3;
+  --success: #087d4e;
+  --danger: #cf202f;
   --font-body: 'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif;
   --font-display: 'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif;
   --font-mono: var(--font-body);
   --radius-input: 12px;
   --radius-card: 24px;
   --radius-pill: 100px;
-  color-scheme: dark;
+  color-scheme: light;
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.5;

@@ -15,8 +15,8 @@ export default function CandidateDetails({ printView = false }) {
   const [passportReady, setPassportReady] = useState(false);
   const [loadedCertificates, setLoadedCertificates] = useState({});
   const [crops, setCrops] = useState({
-    certificate: { zoom: 1, horizontal: 50, vertical: 50, fitFull: false },
-    certificate2: { zoom: 1, horizontal: 50, vertical: 50, fitFull: false },
+    certificate: { zoom: 1, horizontal: 50, vertical: 50, fitFull: true },
+    certificate2: { zoom: 1, horizontal: 50, vertical: 50, fitFull: true },
   });
   useEffect(() => {
     if (!printView || !candidate) return;

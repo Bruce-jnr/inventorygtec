@@ -90,6 +90,16 @@ legend small { display: block; font-size: 13px; font-weight: 400; color: var(--b
 .success-card > .primary-button { margin-top: 32px; }
 
 /* Administrator login */
+.passport-crop-dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 24px; border: 1px solid var(--hairline); border-radius: var(--radius-card); background: var(--surface-card); color: var(--ink); }
+.passport-crop-dialog::backdrop { background: rgb(0 0 0 / 55%); }
+.passport-crop-dialog h2 { font-size: 24px; margin-bottom: 12px; }
+.passport-crop-dialog p { font-size: 14px; }
+.passport-crop-preview { display: block; width: min(100%, 300px); height: auto; aspect-ratio: 1; margin: 20px auto; background: var(--surface-soft); border: 1px solid var(--hairline); border-radius: var(--radius-input); }
+.passport-crop-preview { touch-action: none; cursor: grab; user-select: none; }
+.passport-crop-preview:active { cursor: grabbing; }
+.passport-crop-preview:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+.passport-crop-zoom { display: flex; justify-content: center; align-items: center; gap: 16px; }
+.passport-crop-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .login-page { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 250px); padding-top: 48px; padding-bottom: 48px; }
 .login-page .login-card { width: 100%; max-width: 440px; }
 .login-card { padding: 32px; }
@@ -176,6 +186,12 @@ dl > div:not(:first-child) dd { font-family: var(--font-mono); font-size: 14px; 
 .print-option { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; font-size: 14px; color: var(--body); }
 .print-option input { width: 20px; height: 20px; accent-color: var(--accent-text); }
 .print-view { max-width: 1040px; }
+.print-view .passport-frame { width: 200px; max-width: 100%; }
+.print-view .passport-crop { width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: var(--radius-input); background: var(--surface-soft); }
+.print-view .passport-frame .private-image { display: block; width: 100%; height: 100%; object-fit: var(--passport-fit, contain); object-position: var(--passport-x, 50%) var(--passport-y, 50%); transform: scale(var(--passport-zoom, 1)); transform-origin: var(--passport-x, 50%) var(--passport-y, 50%); }
+@media screen and (max-width: 767px) {
+  .print-view .passport-frame { width: 120px; }
+}
 .sheet-full-name { grid-column: 1 / -1; }
 .print-view .sheet-fields dl { display: flex; flex-wrap: wrap; }
 .print-view .sheet-fields dl > div { flex: 1 1 calc(50% - 16px); min-width: 0; }
@@ -195,6 +211,14 @@ dl > div:not(:first-child) dd { font-family: var(--font-mono); font-size: 14px; 
 .certificate-item h3 { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
 .certificate-crop { width: 100%; aspect-ratio: 1.36; overflow: hidden; background: var(--surface-soft); }
 .certificate-crop .private-image { display: block; width: 100%; height: 100%; object-fit: var(--certificate-fit, contain); object-position: var(--certificate-x, 50%) var(--certificate-y, 50%); transform: scale(var(--certificate-zoom, 1)); transform-origin: var(--certificate-x, 50%) var(--certificate-y, 50%); }
+.interactive-certificate { touch-action: none; cursor: grab; user-select: none; }
+.interactive-certificate:active { cursor: grabbing; }
+.interactive-certificate:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+.interactive-certificate .private-image { object-position: center; transform-origin: center; transform: translate(var(--certificate-pan-x, 0%), var(--certificate-pan-y, 0%)) scale(var(--certificate-zoom, 1)); }
+.certificate-adjustments { margin-bottom: 16px; }
+.certificate-adjustments p { font-size: 12px; }
+.certificate-zoom-buttons { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+.certificate-adjustments .print-option { font-size: 12px; margin-bottom: 0; }
 @media (max-width: 639px) { .crop-sliders { grid-template-columns: 1fr; gap: 12px; } .sheet-certificate { padding: 24px; } }
 .site-footer { border-top: 1px solid var(--hairline-soft); background: var(--canvas); }
 .site-footer > div { max-width: 1264px; margin: auto; padding: 48px 32px; display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 13px; color: var(--muted); }

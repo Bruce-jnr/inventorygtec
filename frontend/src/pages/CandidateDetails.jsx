@@ -15,8 +15,8 @@ export default function CandidateDetails({ printView = false }) {
   const [passportReady, setPassportReady] = useState(false);
   const [loadedCertificates, setLoadedCertificates] = useState({});
   const [crops, setCrops] = useState({
-    certificate: { zoom: 1, horizontal: 50, vertical: 50, fitFull: true },
-    certificate2: { zoom: 1, horizontal: 50, vertical: 50, fitFull: true },
+    certificate: { zoom: 1, x: 0, y: 0, fitFull: true },
+    certificate2: { zoom: 1, x: 0, y: 0, fitFull: true },
   });
   useEffect(() => {
     if (!printView || !candidate) return;
@@ -83,20 +83,11 @@ export default function CandidateDetails({ printView = false }) {
                 {kind === 'certificate2' ? 'Certificate 2' : 'Certificate 1'}
               </h3>
             )}
-            <div
-              className={printView ? 'certificate-crop' : undefined}
-              style={
-                printView
-                  ? {
-                      '--certificate-zoom': crops[kind].zoom,
-                      '--certificate-x': `${crops[kind].horizontal}%`,
-                      '--certificate-y': `${crops[kind].vertical}%`,
-                      '--certificate-fit': crops[kind].fitFull
-                        ? 'contain'
-                        : 'cover',
-                    }
-                  : undefined
-              }
+            <CertificateCropControls
+              enabled={printView}
+              kind={kind}
+              value={crops[kind]}
+              onChange={value => setCrops(old => ({ ...old, [kind]: value }))}
             >
               <PrivateImage
                 candidateId={id}
@@ -106,7 +97,7 @@ export default function CandidateDetails({ printView = false }) {
                   setLoadedCertificates((old) => ({ ...old, [kind]: true }))
                 }
               />
-            </div>
+            </CertificateCropControls>
           </div>
         ))}
       </div>
@@ -150,15 +141,6 @@ export default function CandidateDetails({ printView = false }) {
           </Link>
         )}
       </div>
-      {printView &&
-        kinds.map((kind) => (
-          <CertificateCropControls
-            key={kind}
-            kind={kind}
-            value={crops[kind]}
-            onChange={(value) => setCrops((old) => ({ ...old, [kind]: value }))}
-          />
-        ))}
       <article className="candidate-sheet">
         <div className="sheet-header">
           <img
@@ -215,6 +197,9 @@ export default function CandidateDetails({ printView = false }) {
             </dl>
           </div>
           <div className="passport-frame">
+            <div
+              className={printView ? 'passport-crop' : undefined}
+            >
             <PrivateImage
               key={`passport-${id}`}
               candidateId={id}
@@ -222,6 +207,7 @@ export default function CandidateDetails({ printView = false }) {
               alt={`Passport photograph of ${name}`}
               onReady={() => setPassportReady(true)}
             />
+            </div>
             <span>Passport photograph</span>
           </div>
         </div>

@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   certificate2_path VARCHAR(255) NULL,
   revision INT UNSIGNED NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_candidate_identity (full_name, date_of_birth, admission_year),
   INDEX idx_candidate_name (full_name),
   INDEX idx_admission_year (admission_year),
   INDEX idx_level (current_level)

@@ -18,6 +18,7 @@ export default function CandidateForm({ initialCandidate = null, onFinishedEditi
   const [hasAnotherCertificate, setHasAnotherCertificate] = useState(initialCandidate?.has_second_certificate ? 'yes' : 'no')
   const [errors, setErrors] = useState({})
   const [message, setMessage] = useState('')
+  const [duplicate, setDuplicate] = useState(false)
   const [busy, setBusy] = useState(false)
   const [success, setSuccess] = useState(null)
   const [maxBytes, setMaxBytes] = useState(15 * 1024 * 1024)
@@ -48,6 +49,7 @@ export default function CandidateForm({ initialCandidate = null, onFinishedEditi
     if (errors.certificate2) next.certificate2 = errors.certificate2
     setErrors(next)
     setMessage('')
+    setDuplicate(false)
     if (Object.keys(next).length) { setMessage('Please check the highlighted fields before submitting.'); document.getElementById(Object.keys(next)[0])?.focus(); return }
     pending.current = true
     setBusy(true)
@@ -59,7 +61,7 @@ export default function CandidateForm({ initialCandidate = null, onFinishedEditi
       const result = await api(editing ? '/api/student/me' : '/api/candidates', { method: editing ? 'PUT' : 'POST', body, headers: editing ? { 'If-Match': String(initialCandidate.revision) } : { 'Idempotency-Key': requestKey.current } })
       setSuccess(result)
       if (editing) await api('/api/student/end-access', { method: 'POST', body: '{}' }).catch(() => {})
-    } catch (error) { setErrors(error.errors || {}); setMessage(error.message) }
+    } catch (error) { setErrors(error.errors || {}); setMessage(error.message); setDuplicate(!editing && error.status === 409) }
     finally { pending.current = false; setBusy(false) }
   }
   return <div className="registration-band"><div className="registration-page page-wrap" id="registration-form">
@@ -79,7 +81,7 @@ export default function CandidateForm({ initialCandidate = null, onFinishedEditi
           <div className="additional-certificate-question"><label htmlFor="another-certificate">Do you have another result or certificate?</label><select id="another-certificate" value={hasAnotherCertificate} onChange={event => { const value = event.target.value; setHasAnotherCertificate(value); if (value === 'no') { setFiles(old => ({ ...old, certificate2: null })); setErrors(old => ({ ...old, certificate2: '' })) } }}><option value="no">No</option><option value="yes">Yes</option></select></div>
           {hasAnotherCertificate === 'yes' && <div className="uploads-grid"><FileUpload name="certificate2" label="Second certificate" required={false} help="Make sure all text is clearly visible." existingImage={editing && initialCandidate.has_second_certificate ? <PrivateImage student kind="certificate2" alt="Saved second certificate" /> : null} file={files.certificate2} maxBytes={maxBytes} disabled={busy} error={errors.certificate2} onChange={(file, error) => { setFiles(old => ({ ...old, certificate2: file })); setErrors(old => ({ ...old, certificate2: error })) }} /></div>}
         </fieldset>
-        <div className="submission-section"><p className="submission-note"><Check size={16} />By submitting, you confirm that these details are accurate.</p>{message && <div role="alert" className="alert error-alert">{message}</div>}<button className="primary-button submit-button" type="submit" disabled={busy}>{busy ? <><span className="spinner" />Submitting your registration…</> : <>{editing ? "Resubmit corrections" : "Submit registration"} <ArrowRight size={18} /></>}</button><p className="required-note"><span>*</span> Required fields are marked with *. Middle name and second certificate are optional.</p></div>
+        <div className="submission-section"><p className="submission-note"><Check size={16} />By submitting, you confirm that these details are accurate.</p>{message && <div role="alert" className="alert error-alert">{message}{duplicate && <Link className="text-button" to="/retrieve">Retrieve and correct your form</Link>}</div>}<button className="primary-button submit-button" type="submit" disabled={busy}>{busy ? <><span className="spinner" />Submitting your registration…</> : <>{editing ? "Resubmit corrections" : "Submit registration"} <ArrowRight size={18} /></>}</button><p className="required-note"><span>*</span> Required fields are marked with *. Middle name and second certificate are optional.</p></div>
       </form>}
   </div></div>
 }

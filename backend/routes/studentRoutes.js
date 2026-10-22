@@ -89,6 +89,7 @@ export function studentRoutes(pool, config) {
     } catch (error) {
       if (connection && !committed) await connection.rollback().catch(() => {})
       if (!committed) await Promise.all(newFiles.map(filename => unlink(path.join(config.uploadDir, filename)).catch(() => {})))
+      if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({ message: 'These corrections match another existing registration. Duplicate registrations are not allowed. Check your name, date of birth and admission year.' })
       throw error
     } finally { connection?.release() }
   })

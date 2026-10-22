@@ -23,9 +23,15 @@ try {
   if (!columns.some(column => column.Field === 'mode_of_entry')) await connection.query('ALTER TABLE candidates ADD COLUMN mode_of_entry VARCHAR(10) NULL')
   if (!columns.some(column => column.Field === 'certificate2_path')) await connection.query('ALTER TABLE candidates ADD COLUMN certificate2_path VARCHAR(255) NULL')
   if (fullName?.Type === 'varchar(150)') await connection.query('ALTER TABLE candidates MODIFY COLUMN full_name VARCHAR(200) NOT NULL')
+  const [indexes] = await connection.query('SHOW INDEX FROM candidates')
+  if (!indexes.some(index => index.Key_name === 'uq_candidate_identity')) {
+    const [duplicates] = await connection.query('SELECT COUNT(*) AS total FROM (SELECT full_name, date_of_birth, admission_year FROM candidates GROUP BY full_name, date_of_birth, admission_year HAVING COUNT(*) > 1) AS duplicate_groups')
+    if (Number(duplicates[0].total)) throw new Error('Existing duplicate registrations must be reviewed before enabling duplicate protection. No registrations were deleted.')
+    await connection.query('ALTER TABLE candidates ADD UNIQUE KEY uq_candidate_identity (full_name, date_of_birth, admission_year)')
+  }
   console.log('Database and tables are ready.')
 } catch (error) {
-  console.error('Database setup failed. Check credentials and CREATE privileges. Error:', error.code || error.name)
+  console.error('Database setup failed:', error.code || error.message)
   process.exitCode = 1
 } finally { if (connection) await connection.end() }
 

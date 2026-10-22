@@ -17,6 +17,10 @@ export function candidateRoutes(pool, config) {
     if (Object.keys(errors).length) return res.status(400).json({ message: 'Please check the highlighted fields.', errors })
     const [existing] = await pool.execute('SELECT id, reference FROM candidates WHERE request_key = ?', [requestKey])
     if (existing.length) return res.status(201).json({ message: 'Registration successful', candidateId: existing[0].id, reference: existing[0].reference })
+    const duplicateMessage = 'Duplicate registrations are not allowed. A registration with this name, date of birth and admission year already exists. Retrieve your form using your reference number and date of birth to make corrections.'
+    const identity = [value.full_name, value.date_of_birth, value.admission_year]
+    const [matching] = await pool.execute('SELECT id FROM candidates WHERE full_name = ? AND date_of_birth = ? AND admission_year = ? LIMIT 1', identity)
+    if (matching.length) return res.status(409).json({ message: duplicateMessage })
     const names = await saveImages(req.files, config.uploadDir)
     try {
       const reference = `CAN-${new Date().getUTCFullYear()}-${randomUUID().replaceAll('-', '').slice(0, 16).toUpperCase()}`
@@ -28,6 +32,8 @@ export function candidateRoutes(pool, config) {
       if (error.code === 'ER_DUP_ENTRY') {
         const [duplicate] = await pool.execute('SELECT id, reference FROM candidates WHERE request_key = ?', [requestKey])
         if (duplicate.length) return res.status(201).json({ message: 'Registration successful', candidateId: duplicate[0].id, reference: duplicate[0].reference })
+        const [matching] = await pool.execute('SELECT id FROM candidates WHERE full_name = ? AND date_of_birth = ? AND admission_year = ? LIMIT 1', identity)
+        if (matching.length) return res.status(409).json({ message: duplicateMessage })
       }
       throw error
     }

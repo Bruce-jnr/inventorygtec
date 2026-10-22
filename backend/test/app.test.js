@@ -121,9 +121,27 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     apps.push(failedApp)
     const agent = request.agent(failedApp)
     const session = await agent.get('/api/session').expect(200)
-    const result = await registration(agent, randomUUID(), session.body.csrfToken).attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').attach('certificate2', png, 'certificate2.png').expect(500)
+    const result = await registration(agent, randomUUID(), session.body.csrfToken, { surname: 'Different' }).attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').attach('certificate2', png, 'certificate2.png').expect(500)
     assert.ok(!JSON.stringify(result.body).includes('TEST_FAILURE'))
     assert.equal((await readdir(directory)).length, 3)
+  })
+  it('rejects fresh duplicate submissions after normalizing names and enforces uniqueness in MySQL', async () => {
+    const duplicateApp = createApp({ pool, config: { ...config, production: false, uploadDir: directory } })
+    apps.push(duplicateApp)
+    const agent = request.agent(duplicateApp)
+    const session = await agent.get('/api/session').expect(200)
+    const filesBefore = await readdir(directory)
+    const responses = await Promise.all([1, 2].map(() => registration(agent, randomUUID(), session.body.csrfToken, { surname: '  mEnSaH ', first_name: ' ama  ' })
+      .attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').expect(409)))
+    for (const response of responses) {
+      assert.match(response.body.message, /Duplicate registrations are not allowed/)
+      assert.match(response.body.message, /reference number/)
+      assert.equal(response.body.reference, undefined)
+    }
+    assert.deepEqual(await readdir(directory), filesBefore)
+    const [[row]] = await pool.execute('SELECT * FROM candidates WHERE id = ?', [candidate.candidateId])
+    await assert.rejects(pool.execute('INSERT INTO candidates (reference, request_key, full_name, admission_year, current_level, date_of_birth, passport_path, certificate_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [`TEST-${randomBytes(8).toString('hex')}`, randomUUID(), row.full_name, row.admission_year, row.current_level, row.date_of_birth, row.passport_path, row.certificate_path]), { code: 'ER_DUP_ENTRY' })
   })
   it('logs in securely, regenerates sessions and rejects invalid credentials', async () => {
     const session = await admin.get('/api/session').expect(200)
@@ -221,7 +239,7 @@ describe('Candidate API with isolated MySQL persistence', { concurrency: false }
     assert.match(response.headers['set-cookie'][0], /; HttpOnly/)
   })
   it('still accepts registrations with only one certificate', async () => {
-    const result = await registration().attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').expect(201)
+    const result = await registration(anonymous, randomUUID(), csrf, { surname: 'Boateng' }).attach('passport', png, 'passport.png').attach('certificate', png, 'certificate.png').expect(201)
     const [[row]] = await pool.execute('SELECT certificate2_path FROM candidates WHERE id = ?', [result.body.candidateId])
     assert.equal(row.certificate2_path, null)
   })
